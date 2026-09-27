@@ -29,9 +29,9 @@ B0 = 0.0
 
 
 def net_output(x: np.ndarray, w: np.ndarray, b: float) -> float:
-    """Adaline: output chính là net = w·x + b (KHÔNG qua hàm bước)."""
-    # TODO 1: tính và trả về net = w dot x + b (kiểu float).
-    raise NotImplementedError("Hoàn thiện TODO 1 trong net_output().")
+  """Adaline: output chính là net = w·x + b (KHÔNG qua hàm bước)."""
+  # TODO 1: tính và trả về net = w dot x + b (kiểu float).
+  return float(np.dot(w, x) + b)
 
 
 def update(
@@ -41,79 +41,87 @@ def update(
     b: float,
     eta: float,
 ) -> tuple[float, float, np.ndarray, float]:
-    """Một lượt Widrow–Hoff: tính net, sai số liên tục, rồi cập nhật w, b."""
-    net = net_output(x, w, b)
+  """Một lượt Widrow–Hoff: tính net, sai số liên tục, rồi cập nhật w, b."""
+  net = net_output(x, w, b)
 
-    # TODO 2: tính error = t - net (sai số liên tục của Adaline).
-    # TODO 3: tạo w_new = w + eta * error * x và b_new = b + eta * error.
-    #         Gợi ý: không sửa trực tiếp mảng w được truyền vào hàm.
-    # Trả về (net, error, w_new, b_new).
-    raise NotImplementedError("Hoàn thiện TODO 2 và TODO 3 trong update().")
+  # TODO 2: tính error = t - net (sai số liên tục của Adaline).
+  error = t - net
+
+  # TODO 3: tạo w_new = w + eta * error * x và b_new = b + eta * error.
+  #         Gợi ý: không sửa trực tiếp mảng w được truyền vào hàm.
+  w_new = w + eta * error * x
+  b_new = b + eta * error
+
+  # Trả về (net, error, w_new, b_new).
+  return net, error, w_new, b_new
 
 
 def mse(w: np.ndarray, b: float) -> float:
-    """Sai số bình phương trung bình E = mean(0.5 * e^2) trên cả 3 mẫu."""
-    # TODO 4: với mỗi (x, t) tính e = t - net rồi lấy trung bình của 0.5 * e^2.
-    raise NotImplementedError("Hoàn thiện TODO 4 trong mse().")
+  """Sai số bình phương trung bình E = mean(0.5 * e^2) trên cả 3 mẫu."""
+  # TODO 4: với mỗi (x, t) tính e = t - net rồi lấy trung bình của 0.5 * e^2.
+  errors = np.array([t - net_output(x, w, b) for x, t in zip(X, T)])
+  return float(np.mean(0.5 * errors**2))
 
 
-def train_one_epoch(eta: float = ETA) -> tuple[np.ndarray, float, list[dict[str, object]]]:
-    """Chạy đúng một epoch theo thứ tự C, I, T và lưu lịch sử từng lượt."""
-    w = W0.copy()
-    b = B0
-    history: list[dict[str, object]] = []
+def train_one_epoch(
+    eta: float = ETA,
+) -> tuple[np.ndarray, float, list[dict[str, object]]]:
+  """Chạy đúng một epoch theo thứ tự C, I, T và lưu lịch sử từng lượt."""
+  w = W0.copy()
+  b = B0
+  history: list[dict[str, object]] = []
 
-    for label, x_i, t_i in zip(LABELS, X, T):
-        net, error, w, b = update(x_i, float(t_i), w, b, eta)
-        history.append(
-            {
-                "mau": label,
-                "net": net,
-                "error": error,
-                "w_sau_luot": w.copy(),
-                "b_sau_luot": b,
-            }
-        )
+  for label, x_i, t_i in zip(LABELS, X, T):
+    net, error, w, b = update(x_i, float(t_i), w, b, eta)
+    history.append(
+        {
+            "mau": label,
+            "net": net,
+            "error": error,
+            "w_sau_luot": w.copy(),
+            "b_sau_luot": b,
+        }
+    )
 
-    return w, b, history
+  return w, b, history
 
 
 def run_checks() -> None:
-    """Các kiểm tra chỉ chạy được sau khi hoàn thiện đủ các TODO.
+  """Các kiểm tra chỉ chạy được sau khi hoàn thiện đủ các TODO.
 
-    Đối chiếu với bảng tính tay trong bài giảng Buổi 5 (eta=0.1, w0=0, b0=0).
-    """
-    net_C = net_output(X[0], W0, B0)
-    assert np.isclose(net_C, 0.0), "net ban đầu của mẫu C phải bằng 0."
+  Đối chiếu với bảng tính tay trong bài giảng Buổi 5 (eta=0.1, w0=0, b0=0).
+  """
+  net_C = net_output(X[0], W0, B0)
+  assert np.isclose(net_C, 0.0), "net ban đầu của mẫu C phải bằng 0."
 
-    w_final, b_final, history = train_one_epoch()
-    assert len(history) == 3, "Một epoch phải đi qua đủ C, I, T."
+  w_final, b_final, history = train_one_epoch()
+  assert len(history) == 3, "Một epoch phải đi qua đủ C, I, T."
 
-    nets = [row["net"] for row in history]
-    assert np.isclose(nets[0], 0.0), "net của C phải bằng 0."
-    assert np.isclose(nets[1], 0.3), "net của I phải bằng 0.3."
-    assert np.isclose(nets[2], 0.11), "net của T phải bằng 0.11."
+  nets = [row["net"] for row in history]
+  assert np.isclose(nets[0], 0.0), "net của C phải bằng 0."
+  assert np.isclose(nets[1], 0.3), "net của I phải bằng 0.3."
+  assert np.isclose(nets[2], 0.11), "net của T phải bằng 0.11."
 
-    assert np.allclose(w_final, [0.1, 0.0, 0.059, 0.07, -0.041]), (
-        "Trọng số sau một epoch chưa đúng."
-    )
-    assert np.isclose(b_final, 0.059), "Bias sau một epoch chưa đúng."
+  assert np.allclose(w_final, [0.1, 0.0, 0.059, 0.07, -0.041]), (
+      "Trọng số sau một epoch chưa đúng."
+  )
+  assert np.isclose(b_final, 0.059), "Bias sau một epoch chưa đúng."
 
-    # Nhiều epoch: MSE phải giảm.
-    w, b = W0.copy(), B0
-    mse_dau = None
-    for epoch in range(30):
-        for x_i, t_i in zip(X, T):
-            _, _, w, b = update(x_i, float(t_i), w, b, ETA)
-        if epoch == 0:
-            mse_dau = mse(w, b)
-    mse_cuoi = mse(w, b)
-    assert mse_cuoi < mse_dau, "MSE phải giảm sau nhiều epoch."
+  # Nhiều epoch: MSE phải giảm.
+  w, b = W0.copy(), B0
+  mse_dau = None
+  for epoch in range(30):
+    for x_i, t_i in zip(X, T):
+      _, _, w, b = update(x_i, float(t_i), w, b, ETA)
+    if epoch == 0:
+      mse_dau = mse(w, b)
+  mse_cuoi = mse(w, b)
+  assert mse_cuoi < mse_dau, "MSE phải giảm sau nhiều epoch."
 
 
 if __name__ == "__main__":
-    run_checks()
-    _, _, rows = train_one_epoch()
-    for row in rows:
-        print(row)
-    print("Đã vượt qua toàn bộ kiểm tra Buổi 5.")
+  run_checks()
+  _, _, rows = train_one_epoch()
+  for row in rows:
+    print(row)
+  print("Đã vượt qua toàn bộ kiểm tra Buổi 5.")
